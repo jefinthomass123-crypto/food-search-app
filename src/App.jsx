@@ -1,54 +1,38 @@
-import { useState } from "react";
-import SearchBar from "./components/SearchBar";
-import FoodList from "./components/FoodList";
+import { Routes, Route } from "react-router-dom";
+import { useReducer } from "react";
+import HomePage from "./pages/HomePage";
+import DetailPage from "./pages/DetailPage";
+import SavedPage from "./pages/SavedPage";
+import NavBar from "./components/NavBar";
+
+function reducer(state, action) {
+  switch (action.type) {
+    case "ADD":
+      if (state.find(item => item.code === action.payload.code)) {
+        return state;
+      }
+      return [...state, action.payload];
+
+    case "REMOVE":
+      return state.filter(item => item.code !== action.payload);
+
+    default:
+      return state;
+  }
+}
 
 function App() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
-
-  const handleSearch = async (query) => {
-    setLoading(true);
-    setSearched(true);
-
-    try {
-      const res = await fetch(
-        `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=true`
-      );
-
-      const data = await res.json();
-
-      const validProducts = data.products
-        .filter((p) => p && (p.product_name || p.product_name_en))
-        .slice(0, 20);
-
-      setProducts(validProducts);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setProducts([]);
-    }
-
-    setLoading(false);
-  };
+  const [saved, dispatch] = useReducer(reducer, []);
 
   return (
-    <div className="container">
-      <h1>🍔 Food Search App</h1>
-
-      <SearchBar onSearch={handleSearch} />
-
-      {!searched && <p style={{ textAlign: "center" }}>Start searching for food...</p>}
-
-      {loading && <p style={{ textAlign: "center" }}>Loading...</p>}
-
-      {!loading && searched && products.length === 0 && (
-        <p style={{ textAlign: "center" }}>No results found</p>
-      )}
-
-      {!loading && products.length > 0 && (
-        <FoodList products={products} />
-      )}
-    </div>
+    <>
+      <NavBar savedCount={saved.length} />
+      <Routes>
+        <Route path="/" element={<HomePage dispatch={dispatch} />} />
+        <Route path="/product/:barcode" element={<DetailPage />} />
+        <Route path="/saved" element={<SavedPage saved={saved} dispatch={dispatch} />} />
+      </Routes>
+    </>
   );
 }
 
