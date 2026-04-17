@@ -33,7 +33,7 @@ function App() {
 
   return (
     <div className="container">
-      <h1>🍔 Food Search App</h1>
+      <h1>🍔 Food Search App 🚀</h1>
 
       <SearchBar onSearch={handleSearch} />
 
