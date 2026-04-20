@@ -1,6 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  Container,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button
+} from "@mui/material";
 
 function DetailPage() {
   const { barcode } = useParams();
@@ -11,56 +19,94 @@ function DetailPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    let mounted = true;
-
     const fetchProduct = async () => {
       try {
         setLoading(true);
         setError("");
 
+        // ✅ FIXED API CALL
         const res = await axios.get(
           `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`
         );
 
-        if (mounted) {
+        if (res.data.status === 1) {
           setProduct(res.data.product);
+        } else {
+          setError("Product not found");
         }
       } catch (err) {
-        if (mounted) {
-          setError("Failed to fetch product");
-        }
+        console.error(err);
+        setError("Failed to fetch product");
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
-    fetchProduct();
-
-    return () => {
-      mounted = false; // cleanup
-    };
+    if (barcode) fetchProduct();
   }, [barcode]);
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (loading) {
+    return (
+      <Container sx={{ mt: 4 }}>
+        <Typography>Loading...</Typography>
+      </Container>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container sx={{ mt: 4 }}>
+        <Typography color="error">{error}</Typography>
+        <Button sx={{ mt: 2 }} onClick={() => navigate(-1)}>
+          Back
+        </Button>
+      </Container>
+    );
+  }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <button onClick={() => navigate(-1)}>⬅ Back</button>
+    <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Button sx={{ mb: 2 }} onClick={() => navigate(-1)}>
+        Back
+      </Button>
 
-      <h2>{product?.product_name || "No Name"}</h2>
+      <Card>
+        {product?.image_url && (
+          <CardMedia
+            component="img"
+            height="300"
+            image={product.image_url}
+            alt={product?.product_name}
+          />
+        )}
 
-      {product?.image_url && (
-        <img src={product.image_url} alt="product" width="200" />
-      )}
+        <CardContent>
+          <Typography variant="h4" gutterBottom>
+            {product?.product_name || "No Name"}
+          </Typography>
 
-      <p><strong>Brand:</strong> {product?.brands || "N/A"}</p>
-      <p><strong>Category:</strong> {product?.categories || "N/A"}</p>
-      <p><strong>Quantity:</strong> {product?.quantity || "N/A"}</p>
-      <p><strong>Country:</strong> {product?.countries || "N/A"}</p>
-    </div>
+          <Typography>
+            <b>Barcode:</b> {product?.code || barcode}
+          </Typography>
+
+          <Typography>
+            <b>Brand:</b> {product?.brands || "N/A"}
+          </Typography>
+
+          <Typography>
+            <b>Category:</b> {product?.categories || "N/A"}
+          </Typography>
+
+          <Typography>
+            <b>Quantity:</b> {product?.quantity || "N/A"}
+          </Typography>
+
+          <Typography>
+            <b>Country:</b> {product?.countries || "N/A"}
+          </Typography>
+        </CardContent>
+      </Card>
+    </Container>
   );
 }
 

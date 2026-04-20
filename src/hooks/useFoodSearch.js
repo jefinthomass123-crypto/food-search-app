@@ -7,7 +7,7 @@ export default function useFoodSearch() {
   const [error, setError] = useState("");
 
   const searchFood = async (query) => {
-    if (!query || query.length < 2) {
+    if (!query || query.trim().length < 2) {
       setError("Enter at least 2 characters");
       return;
     }
@@ -17,17 +17,23 @@ export default function useFoodSearch() {
       setError("");
 
       const res = await axios.get(
-        "https://world.openfoodfacts.org/cgi/search.pl",
+        "https://world.openfoodfacts.org/api/v2/search",
         {
           params: {
-            search_terms: query,
-            json: 1,
+            q: query,
+            page_size: 20,
+            fields: "product_name,code,brands,image_url",
           },
         }
       );
 
-      setResults(res.data.products);
-    } catch {
+      console.log("API RESPONSE:", res.data);
+
+      const products = res.data.products || [];
+
+      setResults(products);
+    } catch (err) {
+      console.error("API ERROR:", err);
       setError("Failed to fetch data");
     } finally {
       setLoading(false);

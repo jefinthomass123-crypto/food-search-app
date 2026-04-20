@@ -1,30 +1,68 @@
+import { useState } from "react";
+import {
+  Container,
+  Typography,
+  TextField,
+  CircularProgress,
+  Box,
+  Button
+} from "@mui/material";
+
 import useFoodSearch from "../hooks/useFoodSearch";
 import ProductCard from "../components/ProductCard";
 
-function HomePage({ dispatch }) {
+function HomePage() {
+  const [query, setQuery] = useState("");
   const { results, loading, error, searchFood } = useFoodSearch();
 
-  return (
-    <div>
-      <h2>Search Food</h2>
+  const handleSearch = () => {
+    searchFood(query);
+  };
 
-      <input
-        type="text"
-        placeholder="Search..."
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            searchFood(e.target.value);
-          }
-        }}
+  return (
+    <Container maxWidth="lg" sx={{ marginTop: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Search Food
+      </Typography>
+
+      <TextField
+        fullWidth
+        label="Search..."
+        variant="outlined"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
       />
 
-      {loading && <p>Loading...</p>}
+      {/* 🔥 ADD SEARCH BUTTON */}
+      <Button
+        variant="contained"
+        sx={{ mt: 2 }}
+        onClick={handleSearch}
+      >
+        Search
+      </Button>
+
+      {loading && (
+        <Box sx={{ mt: 3 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
       {error && <p style={{ color: "red" }}>{error}</p>}
 
-      {results.map((item) => (
-        <ProductCard key={item.code} product={item} dispatch={dispatch} />
-      ))}
-    </div>
+      <Box
+        sx={{
+          marginTop: 4,
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: 3,
+        }}
+      >
+        {results.map((item) => (
+          <ProductCard key={item.code} product={item} />
+        ))}
+      </Box>
+    </Container>
   );
 }
 
