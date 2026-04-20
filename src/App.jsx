@@ -1,54 +1,27 @@
-import { useState } from "react";
-import SearchBar from "./components/SearchBar";
-import FoodList from "./components/FoodList";
+import { Routes, Route } from "react-router-dom";
+import { useSelector } from "react-redux";
+
+import HomePage from "./pages/HomePage";
+import DetailPage from "./pages/DetailPage";
+import SavedPage from "./pages/SavedPage";
+import NavBar from "./components/NavBar";
 
 function App() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [searched, setSearched] = useState(false);
-
-  const handleSearch = async (query) => {
-    setLoading(true);
-    setSearched(true);
-
-    try {
-      const res = await fetch(
-        `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&json=true`
-      );
-
-      const data = await res.json();
-
-      const validProducts = data.products
-        .filter((p) => p && (p.product_name || p.product_name_en))
-        .slice(0, 20);
-
-      setProducts(validProducts);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      setProducts([]);
-    }
-
-    setLoading(false);
-  };
+  // ✅ FIX HERE
+  const saved = useSelector((state) => state.saved || []);
 
   return (
-    <div className="container">
-      <h1>🍔 Food Search App</h1>
+    <>
+      <NavBar savedCount={saved.length} />
 
-      <SearchBar onSearch={handleSearch} />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/product/:barcode" element={<DetailPage />} />
 
-      {!searched && <p style={{ textAlign: "center" }}>Start searching for food...</p>}
-
-      {loading && <p style={{ textAlign: "center" }}>Loading...</p>}
-
-      {!loading && searched && products.length === 0 && (
-        <p style={{ textAlign: "center" }}>No results found</p>
-      )}
-
-      {!loading && products.length > 0 && (
-        <FoodList products={products} />
-      )}
-    </div>
+        {/* ❌ DO NOT PASS PROPS */}
+        <Route path="/saved" element={<SavedPage />} />
+      </Routes>
+    </>
   );
 }
 
